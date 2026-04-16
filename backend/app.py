@@ -1,5 +1,5 @@
-from backend.flask import Flask
-from backend.flask_cors import CORS
+from flask import Flask
+from flask_cors import CORS
 from backend.config import Config
 from backend.models.models import db
 from backend.utils.jwt_util import init_jwt
