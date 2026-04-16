@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NextStep AI | 活力面试新体验</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --accent-blue: #3ca9fe;
+            --text-main: #2d3436;
+            --text-gray: #636e72;
+            --white: #ffffff;
+            --success-green: #2ecc71;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; transition: all 0.2s ease; }
+
+        body {
+            background: var(--bg-gradient);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* 修改：增加宽度和圆角的过渡动画 */
+        .main-container {
+            display: flex;
+            width: 950px;
+            height: 620px;
+            background: var(--white);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 新增：全屏模式样式 */
+        .main-container.full-screen {
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+        }
+
+        /* 左侧固定介绍区 */
+        .intro-side {
+            flex: 1;
+            background: #f8fbff;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-right: 1px solid #edf2f7;
+        }
+        
+        /* 新增：隐藏左侧 */
+        .intro-side.hidden {
+            display: none;
+        }
+
+        .intro-side h1 { color: var(--accent-blue); font-size: 32px; letter-spacing: 2px; margin-bottom: 10px; }
+        .intro-side p.tagline { color: var(--text-gray); font-size: 14px; margin-bottom: 40px; }
+        .feature-list h2 { font-size: 22px; margin-bottom: 20px; }
+        .feature-list li { margin-bottom: 15px; color: var(--text-gray); font-size: 14px; display: flex; align-items: center; }
+        .feature-list li::before { content: '✦'; color: var(--accent-blue); margin-right: 10px; font-weight: bold; }
+
+        /* 右侧动态操作区 */
+        .action-side {
+            flex: 0.9;
+            padding: 40px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* 新增：全屏时右侧区域自适应居中 */
+        .main-container.full-screen .action-side {
+            flex: 1;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .view-layer { display: none; flex-direction: column; width: 100%; height: 100%; justify-content: center; }
+        .view-layer.active { display: flex; animation: fadeIn 0.4s ease-out; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        h3 { text-align: center; margin-bottom: 25px; font-size: 20px; color: var(--text-main); line-height: 1.4; }
+
+        .input-box { margin-bottom: 15px; }
+        .input-box label { display: block; font-size: 12px; color: var(--text-gray); margin-bottom: 8px; font-weight: 600; }
+        .input-box input, .input-box select {
+            width: 100%; padding: 12px 15px; border: 1px solid #e2e8f0; border-radius: 10px;
+            background: #fdfdfd; outline: none; font-size: 14px;
+        }
+        .input-box input:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(60, 169, 254, 0.1); }
+
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+        .btn-blue { background: var(--accent-blue); color: white; box-shadow: 0 4px 12px rgba(60, 169, 254, 0.3); }
+        .btn-blue:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(60, 169, 254, 0.4); }
+        .btn-link { background: none; color: var(--text-gray); font-size: 13px; margin-top: 15px; text-decoration: underline; }
+
+        /* 聊天窗口样式 - 全屏时增加高度 */
+        .chat-box { height: 350px; overflow-y: auto; border: 1px solid #eee; border-radius: 12px; padding: 15px; margin-bottom: 15px; background: #fdfdfd; scroll-behavior: smooth; }
+        .main-container.full-screen .chat-box { height: 60vh; } /* 全屏时动态高度 */
+
+        .chat-row { margin-bottom: 12px; display: flex; flex-direction: column; }
+        .chat-row-user { align-items: flex-end; }
+        .chat-row-ai { align-items: flex-start; }
+        .chat-item { max-width: 85%; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.6; }
+        .chat-user { background: #eef7ff; color: #2d3436; border-bottom-right-radius: 2px; }
+        .chat-ai { background: #f0f2f5; color: #2d3436; border-bottom-left-radius: 2px; }
+
+        /* 报告样式 */
+        .report-area { height: 380px; overflow-y: auto; background: #fafbfc; border-radius: 12px; padding: 20px; border: 1px dashed #cbd5e0; }
+        .main-container.full-screen .report-area { height: 65vh; }
+
+        .score-circle { width: 80px; height: 80px; border-radius: 50%; background: var(--accent-blue); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; margin: 0 auto 15px; border: 4px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+        .avatar-container { position: relative; width: 100px; height: 100px; margin: 0 auto 15px; }
+        .interviewer-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 3px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .status-dot { position: absolute; bottom: 5px; right: 5px; width: 15px; height: 15px; background: var(--success-green); border: 2px solid white; border-radius: 50%; }
+
+        .loading-dots::after { content: '...'; animation: dots 1.5s infinite; }
+        @keyframes dots { 0%, 20% { content: '.'; } 40% { content: '..'; } 60%, 100% { content: '...'; } }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <div class="intro-side">
+        <h1>NEXTSTEP</h1>
+        <p class="tagline">基于AI的沉浸式面试模拟系统</p>
+        <div class="feature-list">
+            <h2>欢迎使用面试模拟</h2>
+            <ul>
+                <li>岗位化情景模拟 (Java/Web/Python)</li>
+                <li>多模态互动对话与动态追问</li>
+                <li>综合能力评分与深度反馈报告</li>
+                <li>实时记录面试历史与成长曲线</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="action-side">
+        <div id="view-login" class="view-layer active">
+            <h3>欢迎回来</h3>
+            <div class="input-box">
+                <label>账号名</label>
+                <input type="text" id="login-user" placeholder="输入您的用户名">
+            </div>
+            <div class="input-box">
+                <label>密码</label>
+                <input type="password" id="login-pass" placeholder="输入您的密码">
+            </div>
+            <button class="btn btn-blue" onclick="doLogin()">登录系统</button>
+            <button class="btn btn-link" onclick="goView('register')">新用户？去注册</button>
+        </div>
+
+        <div id="view-register" class="view-layer">
+            <h3>创建新账号</h3>
+            <div class="input-box">
+                <label>设置用户名</label>
+                <input type="text" id="reg-user">
+            </div>
+            <div class="input-box">
+                <label>设置密码</label>
+                <input type="password" id="reg-pass">
+            </div>
+            <div class="input-box">
+                <label>确认密码</label>
+                <input type="password" id="reg-confirm">
+            </div>
+            <button class="btn btn-blue" onclick="doRegister()">立即注册</button>
+            <button class="btn btn-link" onclick="goView('login')">已有账号？去登录</button>
+        </div>
+
+        <div id="view-home" class="view-layer">
+            <div class="avatar-container">
+                <img src="1.jpg" class="interviewer-img" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=Felix'">
+                <div class="status-dot"></div>
+            </div>
+            <h3 id="welcome-title">面试准备就绪</h3>
+            <div class="input-box">
+                <label>目标岗位</label>
+                <select id="position">
+                    <option value="Java后端开发">Java后端开发</option>
+                    <option value="Web前端开发">Web前端开发</option>
+                    <option value="Python算法工程师">Python算法工程师</option>
+                    <option value="测试工程师">测试工程师</option>
+                </select>
+            </div>
+            <div class="input-box">
+                <label>考察难度</label>
+                <select id="difficulty">
+                    <option value="初级">初级 (基础概念)</option>
+                    <option value="中级">中级 (项目实战)</option>
+                    <option value="高级">高级 (原理与架构)</option>
+                </select>
+            </div>
+            <button class="btn btn-blue" onclick="startInterview()">开始面试</button>
+            <button class="btn btn-link" onclick="logout()">安全退出</button>
+        </div>
+
+        <div id="view-chat" class="view-layer">
+            <h3>正在面试中...</h3>
+            <div class="chat-box" id="chatBox"></div>
+            <div id="chat-input-area" style="display: flex; gap: 10px;">
+                <input id="userMsg" style="flex: 1; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; outline: none;" placeholder="在此输入您的回答..." onkeydown="if(event.keyCode===13)sendMessage()">
+                <button class="btn btn-blue" style="margin: 0; width: 80px;" onclick="sendMessage()">发送</button>
+            </div>
+            <div id="report-gen-loading" style="display: none; text-align: center; color: var(--accent-blue); padding: 20px;">
+                <p class="loading-dots" style="font-weight: bold;">面试结束，正在为您生成评估报告</p>
+            </div>
+        </div>
+
+        <div id="view-report" class="view-layer">
+            <h3>面试表现报告</h3>
+            <div class="report-area" id="reportContent"></div>
+            <button class="btn btn-blue" onclick="goView('home')">开始新面试</button>
+            <button class="btn btn-link" onclick="logout()">退出登录</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_BASE = "http://127.0.0.1:5001/api"; 
+    let token = "";
+    let sessionId = "";
+    let username = "";
+
+    // 修改：视图切换逻辑，处理全屏
+    function goView(v) {
+        const container = document.querySelector('.main-container');
+        const introSide = document.querySelector('.intro-side');
+
+        // 如果进入面试或报告页，开启全屏模式
+        if (v === 'chat' || v === 'report') {
+            container.classList.add('full-screen');
+            introSide.classList.add('hidden');
+        } else {
+            // 返回首页或登录页，恢复分屏模式
+            container.classList.remove('full-screen');
+            introSide.classList.remove('hidden');
+        }
+
+        document.querySelectorAll('.view-layer').forEach(l => l.classList.remove('active'));
+        const targetView = document.getElementById(`view-${v}`);
+        if(targetView) targetView.classList.add('active');
+    }
+
+    // 登录
+    async function doLogin() {
+        const u = document.getElementById('login-user').value;
+        const p = document.getElementById('login-pass').value;
+        if(!u || !p) return alert("请完整填写信息");
+
+        try {
+            const res = await fetch(`${API_BASE}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: u, password: p })
+            });
+            const data = await res.json();
+            if (data.code === 200) {
+                token = data.data.token;
+                username = u;
+                document.getElementById('welcome-title').innerHTML = `你好，${username}！<br><span style="font-size:14px; font-weight:normal; color:#666">请选择面试配置</span>`;
+                goView('home');
+            } else { alert(data.msg); }
+        } catch (e) { alert("连接后端失败，请确认后端已运行"); }
+    }
+
+    // 注册
+    async function doRegister() {
+        const u = document.getElementById('reg-user').value;
+        const p = document.getElementById('reg-pass').value;
+        const c = document.getElementById('reg-confirm').value;
+        if(p !== c) return alert("密码不一致");
+
+        try {
+            const res = await fetch(`${API_BASE}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: u, password: p })
+            });
+            const data = await res.json();
+            alert(data.msg);
+            if(data.code === 200) goView('login');
+        } catch (e) { alert("注册请求异常"); }
+    }
+
+    // 开始面试
+    async function startInterview() {
+        const pos = document.getElementById('position').value;
+        const dif = document.getElementById('difficulty').value;
+        try {
+            const res = await fetch(`${API_BASE}/interview/start`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ position: pos, difficulty: dif })
+            });
+            const data = await res.json();
+            if (data.code === 200) {
+                sessionId = data.data.session_id;
+                document.getElementById('chatBox').innerHTML = '';
+                addChatBubble('ai', data.data.question);
+                goView('chat'); // 这里会触发全屏
+                document.getElementById('chat-input-area').style.display = 'flex';
+                document.getElementById('report-gen-loading').style.display = 'none';
+            }
+        } catch (e) { alert("无法开启面试，请检查 Token 或后端"); }
+    }
+
+    // 发送消息
+    async function sendMessage() {
+        const input = document.getElementById('userMsg');
+        const msg = input.value.trim();
+        if(!msg) return;
+
+        addChatBubble('user', msg);
+        input.value = '';
+
+        try {
+            const res = await fetch(`${API_BASE}/interview/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ session_id: sessionId, message: msg })
+            });
+            const data = await res.json();
+            if(data.code === 200) {
+                const reply = data.data.reply;
+                addChatBubble('ai', reply);
+                if(reply.includes("【面试结束】")) {
+                    setTimeout(finishInterview, 1500);
+                }
+            }
+        } catch (e) { addChatBubble('ai', "对话网络问题。"); }
+    }
+
+    function addChatBubble(role, content) {
+        const box = document.getElementById('chatBox');
+        const roleLabel = role === 'ai' ? '面试官' : '我';
+        const html = `
+            <div class="chat-row chat-row-${role}">
+                <div class="chat-item chat-${role}"><b>${roleLabel}：</b>${content}</div>
+            </div>`;
+        box.insertAdjacentHTML('beforeend', html);
+        box.scrollTop = box.scrollHeight;
+    }
+
+    // 完成面试
+    async function finishInterview() {
+        document.getElementById('chat-input-area').style.display = 'none';
+        document.getElementById('report-gen-loading').style.display = 'block';
+
+        try {
+            const res = await fetch(`${API_BASE}/report/generate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ session_id: sessionId })
+            });
+            const data = await res.json();
+            if(data.code === 200) {
+                const r = data.data;
+                document.getElementById('reportContent').innerHTML = `
+                    <div class="score-circle">${r.score}</div>
+                    <p style="text-align:center; color:#666; margin-bottom:15px;">面试岗位：<b>${r.position}</b></p>
+                    <div style="background:#fff; padding:15px; border-radius:10px; font-size:14px; line-height:1.8;">
+                        ${r.feedback.replace(/\n/g, '<br>')}
+                    </div>
+                `;
+                goView('report');
+            }
+        } catch (e) { alert("报告生成异常"); }
+    }
+
+    function logout() {
+        token = "";
+        location.reload();
+    }
+</script>
+</body>
+</html>
