@@ -1,12 +1,12 @@
 from flask import Flask
 from flask_cors import CORS
-from backend.config import Config
-from backend.models.models import db
-from backend.utils.jwt_util import init_jwt
-from backend.api.auth import auth
-from backend.api.interview import iv
-from backend.api.report import rp
-from backend.api.admin import admin
+from config import Config
+from models.models import db
+from utils.jwt_util import init_jwt
+from api.auth import auth
+from api.interview import iv
+from api.report import rp
+from api.admin import admin
 
 
 def create_app():
